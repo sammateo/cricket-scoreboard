@@ -1,7 +1,109 @@
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
-
+import React from 'react'
+import {useState, useEffect} from 'react'
+import {db, auth} from '../src/services/firebase'
+import Link from 'next/link'
 export default function Home() {
+  const [teamname,setTeamName] = useState("")
+  const [team1,setTeam1] = useState({
+    name: null,
+    Iinnings: 0,
+    byes: 0,
+    leg_byes: 0,
+    name: "",
+    no_balls: 0,
+    runs: 0,
+    teamruns: 0,
+    wickets: 0,
+    wides: 0,
+  });
+
+  const [players1,setPlayers1] = useState([
+    {
+    balls_faced :0,
+    fours:0,
+    maidens:0,
+    name: "",
+    overs: 0,
+    runs_conceeded: 0,
+    runs_scored:0,
+    sixes:0,
+    strike_rate:0,
+    wickets_taken:0
+    }]);
+
+
+  
+
+  
+  async function fetchData()
+  {
+    const response = db.collection('team1')
+    const data = await response.get()
+    data.docs.forEach(doc =>{
+      // console.log(doc.data())
+      setTeam1(doc.data())
+      // names.push(doc.data().Name)
+    })
+    
+  }
+
+
+  async function fetchPlayer()
+  {
+   
+    const playersresp = db.collection('players1')
+    const playerdata = await playersresp.get()
+
+    playerdata.docs.forEach(docs=>{
+      // console.log(docs.data())
+      setPlayers1([docs.data()])
+      // console.log(players1)
+    })
+    
+  }
+
+  useEffect(()=>{
+    fetchData();
+    fetchPlayer();
+  }, [])
+
+  function changeName(event){
+    event.preventDefault()
+    db.collection('team1').doc('KsuewaMQPo6sU7WBwMue').update({
+      name: teamname
+    })
+    setTeam1({...team1, name: teamname})
+  }
+
+  function getName(event){
+    // console.log(event.target.value)
+    setTeamName(event.target.value)
+
+  }
+
+  function sixRun(event){
+    
+    let newruns
+    // console.log(event.target.name)
+    if(event.target.name =="0")
+    {
+      newruns = 0
+    }
+    else{
+      let up = Number(event.target.name)
+      newruns = team1.runs + up
+    }
+    
+    
+    db.collection('team1').doc('KsuewaMQPo6sU7WBwMue').update({
+      runs: newruns
+    })
+    
+    setTeam1({...team1, runs: newruns})
+  }
+  
   return (
     <div className={styles.container}>
       <Head>
@@ -9,57 +111,31 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+      <div>
+        <h1>Cricket Scoreboard</h1>
         </div>
-      </main>
+        <div>
+          <h2>Team 1 Name: {team1.name}</h2>
+          <input name="pernamme" onChange={getName}></input>
+          <button onClick={changeName}>Submit Name</button>
+          {/* <h2>OVERS: </h2> */}
+          <h2>RUNS: {team1.runs}</h2>
+          <button name ="6" onClick={sixRun}>6 runs</button>
+          <button name ="4" onClick={sixRun}>4 runs</button>
+          <button name = "2" onClick={sixRun}>2 runs</button>
+          <button name ="1" onClick={sixRun}>1 runs</button>
+          <button name ="0" onClick={sixRun}>reset to 0</button>
+          <h2>WICKETS: {team1.wickets}</h2>
+          <h2>TARGET</h2>
+          <h2>RUNS NEEDED</h2>
+          <h2>BALLS REM.</h2>
 
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
+          <Link href="/players">
+            <a>Team1</a>
+          </Link>
+          
+          
+        </div>
     </div>
   )
 }
